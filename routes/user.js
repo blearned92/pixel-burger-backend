@@ -1,75 +1,63 @@
 const express = require('express');
 usersRouter = express.Router();
-const db = require('../db/index')
+const db = require('../db/index');
+const bcrypt = require('bcrypt'); //used for encrypting passwords
+const { 
+    getAll, 
+    getById, 
+    createUser, 
+    updateUser, 
+    deleteById } = require('../db/user');
+const {ensureAdminAuthentication, ensureAuthentication, ensureIdOrAdminAuth} = require('../middleware/auth')
 
-usersRouter.get('/', (req, res, next)=>{
-    db.query(
-        'SELECT * FROM customers ORDER BY id ASC', 
-        (error, results)=>{
-        if(error){
-            throw error;
-        }
-        res.status(200).json(results.rows);
-    })
+usersRouter.get('/', ensureAdminAuthentication, async (req, res, next)=>{
+    console.log(req.session.user)
+    const users = await getAll();
+    res.status(200).send(users);
 })
 
-usersRouter.get('/:id', (req, res, next)=>{
+usersRouter.get('/:id', [ensureAuthentication, ensureIdOrAdminAuth], async (req, res, next)=>{
     const id = parseInt(req.params.id) //this is from the url param
-
-    db.query(
-        'SELECT * FROM customers WHERE id = $1', 
-        [id], 
-        (error, results)=>{
-        if(error) {
-            throw error;
-        }
-        res.status(200).json(results.rows); //automaticall parses the results to json
-    })
+    const user = await getById(id);
+    if(!user){
+        res.status(200).json({user:null})
+    } else if(id === req.session.user.user_id || req.session.user.username === 'blearned92'){
+        res.status(200).send(user);
+    } else {
+        res.status(400).json({message:"You're not authorized to view this information"})
+    }
 })
 
-usersRouter.post('/', (req, res, next)=>{
-    const {id, username, password} = req.body //this is a body, and will pull only variable that have the same name
-
-    db.query(
-        'INSERT INTO customers VALUES ($1, $2, $3) RETURNING *',
-        [id, username, password],
-        (error, results)=>{
-        if(error) {
-            throw error;
-        }
-        res.status(201).send(`User added with ID: ${results.rows[0].id}`)
-    })
+usersRouter.post('/', async (req, res, next)=>{
+    const newUser = req.body //this is a body, and will pull only variable that have the same name
+    try {
+        await createUser(newUser);
+        res.status(201).json({message: `User ${newUser.username} successfully created!`});
+    } catch (err) {
+        res.status(400).json({message: "Username Taken"});
+    }
 });
 
-usersRouter.put('/:id', (req, res, next)=>{
+usersRouter.put('/:id', [ensureAuthentication, ensureIdOrAdminAuth], async (req, res, next)=>{
     const id = parseInt(req.params.id)
-    const {username, password} = req.body
-
-    db.query(
-        'UPDATE customers SET username = $1, password = $2 where id = $3',
-        [username, password, id],
-        (error, results) => {
-            if(error) {
-                throw error
-            }
-            res.status(200).send(`User modified with ID: ${id}`)
-        }
-    )
+    const user = req.body
+    try {
+        const results = await updateUser(user, id);
+        res.status(202).json({message: `User ${results.rows[0].username} successfully updated!`})
+    } catch (err) {
+        res.status(400).json({message: "User Object is invalid"});
+    }
 })
 
-usersRouter.delete('/:id', (req, res, next)=>{
+usersRouter.delete('/:id', [ensureAuthentication, ensureIdOrAdminAuth], async (req, res, next)=>{
     const id = parseInt(req.params.id)
-
-    db.query(
-        'DELETE FROM customers WHERE id = $1',
-        [id],
-        (error, results)=>{
-            if(error) {
-                throw error
-            }
-            res.status(200).send(`User delete with ID: ${id}`)
-        }
-    )
+    try {
+        await deleteById(id)
+        res.status(204).send();
+    } catch (err) {
+        res.status(400).json({message:'User object could not be found for deletion'})
+    }
+    
 })
 
 module.exports = usersRouter;
