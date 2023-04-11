@@ -2,15 +2,11 @@ const express = require('express');
 authRouter = express.Router();
 const bcrypt = require('bcrypt'); //used for encrypting passwords
 const { getByUsername, createUser } = require('../db/user');
-<<<<<<< HEAD
-
 
 //login needs to compare passwords with hashed passwords using bcrypt
 authRouter.get('/', (req, res)=>{
   res.send("Welcome!")
 })
-=======
->>>>>>> d97d5c9ce2628b7fb9760d338c8d14f6328e5cf3
 
 
 //login needs to compare passwords with hashed passwords using bcrypt
