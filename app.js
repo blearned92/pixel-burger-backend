@@ -43,6 +43,10 @@ const createServer = () => {
     app.use('/cart', cartRouter);
     app.use('/orders', ordersRouter);
 
+    app.get('/', (req, res)=>{
+        res.status(200).json({message: "Welcome!"})
+    })
+      
     return app;
 }
 
