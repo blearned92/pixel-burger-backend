@@ -1,6 +1,5 @@
 const express = require('express');
 usersRouter = express.Router();
-const db = require('../db/index');
 const bcrypt = require('bcrypt'); //used for encrypting passwords
 const { 
     getAll, 
@@ -28,8 +27,10 @@ usersRouter.get('/:id', [ensureAuthentication, ensureIdOrAdminAuth], async (req,
     }
 })
 
-usersRouter.post('/', async (req, res, next)=>{
+usersRouter.post('/', async (req, res)=>{
     const newUser = req.body //this is a body, and will pull only variable that have the same name
+    const hashedPassword = await bcrypt.hash(newUser.password, 10); //hash the password and store in variable
+    newUser.password = hashedPassword;
     try {
         await createUser(newUser);
         res.status(201).json({message: `User ${newUser.username} successfully created!`});

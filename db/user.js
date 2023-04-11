@@ -27,14 +27,14 @@ const getByUsername = async username => {
 
 const createUser = async (user) => {
     const {first_name, last_name, username, password} = user;
-    const hashedPassword = await bcrypt.hash(password, 10); //hash the password and store in variable
+    // const hashedPassword = await bcrypt.hash(password, 10); //hash the password and store in variable
     return db
         .query(
             'INSERT INTO users (first_name, last_name, username, password) VALUES ($1, $2, $3, $4) RETURNING *',
             [first_name, 
             last_name, 
             username, 
-            hashedPassword]
+            password]
         )
 }
 

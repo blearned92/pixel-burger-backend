@@ -1,6 +1,9 @@
 const express = require('express');
 const session = require("express-session");
+const flash = require('express-flash')
 const bodyParser = require('body-parser');
+require('dotenv').config() //pulls all .env file variables
+
 
 //router imports
 const authRouter = require('./routes/auth');
@@ -10,11 +13,16 @@ const cartRouter = require('./routes/cart');
 const ordersRouter = require('./routes/order');
 
 const createServer = () => {
+    //server configuration
     const app = express();
     const store = new session.MemoryStore();
+    // const passport = require('passport');
+    // const initializePassport = require('./passport-config');
+    // initializePassport(passport);
+    app.use(flash());
     app.use(
         session({
-          secret: "f4z4gs$Gcg",
+          secret: process.env.SESSION_SECRET,
           cookie: { maxAge: 300000000, secure: false },
           saveUninitialized: false,
           resave: false,
