@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt'); //used for encrypting passwords
 
 const getAll = async () => {
     return await db
-        .query('SELECT user_id, first_name, last_name, username FROM users ORDER BY user_id ASC')
+        .query('SELECT user_id, first_name, last_name, username FROM public.users ORDER BY user_id ASC')
         .then(response=>response.rows)
 }
 
@@ -27,14 +27,14 @@ const getByUsername = async username => {
 
 const createUser = async (user) => {
     const {first_name, last_name, username, password} = user;
-    const hashedPassword = await bcrypt.hash(password, 10); //hash the password and store in variable
+    // const hashedPassword = await bcrypt.hash(password, 10); //hash the password and store in variable
     return db
         .query(
             'INSERT INTO users (first_name, last_name, username, password) VALUES ($1, $2, $3, $4) RETURNING *',
             [first_name, 
             last_name, 
             username, 
-            hashedPassword]
+            password]
         )
 }
 

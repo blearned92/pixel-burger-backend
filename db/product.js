@@ -5,7 +5,7 @@ const db = require('./index')
 
 const getAll = async () => {
     return await db
-        .query('SELECT * FROM products')
+        .query('SELECT * FROM public.products')
         .then(response=>response.rows)
 }
 
